@@ -24,7 +24,9 @@ func NewScanner(source string) Scanner {
 func (s *Scanner) ScanTokens() []tokens.Token {
 	for !s.isAtEnd() {
 		s.scanToken()
+		s.start = s.current
 	}
+	s.addToken(tokens.EOF)
 	return s.tokens
 }
 
