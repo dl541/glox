@@ -108,8 +108,11 @@ func (s *Scanner) scanToken() {
 		// number literal
 		if unicode.IsDigit(r) {
 			s.addNumberToken()
+		} else if unicode.IsLetter(r) {
+			s.addIdentifierOrReservedWordToken()
+		} else {
+			error(s.line, "Unexpected character.")
 		}
-		error(s.line, "Unexpected character.")
 	}
 }
 
@@ -172,6 +175,7 @@ func (s *Scanner) addStringToken() {
 		Line:   s.line,
 	}
 	s.tokens = append(s.tokens, token)
+	s.advance()
 }
 
 func (s *Scanner) addNumberToken() {
@@ -188,4 +192,37 @@ func (s *Scanner) addNumberToken() {
 	}
 
 	s.addToken(tokens.NUMBER)
+}
+
+var reservedKeyWord = map[string]tokens.TokenType{
+	"and":    tokens.AND,
+	"class":  tokens.CLASS,
+	"else":   tokens.ELSE,
+	"false":  tokens.FALSE,
+	"fun":    tokens.FUN,
+	"for":    tokens.FOR,
+	"if":     tokens.IF,
+	"nil":    tokens.NIL,
+	"or":     tokens.OR,
+	"print":  tokens.PRINT,
+	"return": tokens.RETURN,
+	"super":  tokens.SUPER,
+	"this":   tokens.THIS,
+	"true":   tokens.TRUE,
+	"var":    tokens.VAR,
+	"while":  tokens.WHILE,
+}
+
+func (s *Scanner) addIdentifierOrReservedWordToken() {
+	for unicode.IsLetter(s.peek()) || unicode.IsDigit(s.peek()) {
+		s.advance()
+	}
+
+	lexeme := s.source[s.start:s.current]
+
+	if tokenType, ok := reservedKeyWord[string(lexeme)]; ok {
+		s.addToken(tokenType)
+	} else {
+		s.addToken(tokens.IDENTIFIER)
+	}
 }
